@@ -161,11 +161,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               label: const Text('Logout', style: TextStyle(color: AppColors.danger)),
               style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.danger)),
             ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => _confirmDeleteAccount(context),
+              child: const Text('Delete account', style: TextStyle(color: AppColors.inkLight500, fontSize: 12, decoration: TextDecoration.underline)),
+            ),
           ],
         ),
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 3),
     );
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final passwordCtrl = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete your account?'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('This permanently deletes your account. If you have a wallet balance, contact support first — it cannot be recovered after deletion.', style: TextStyle(fontSize: 13)),
+          const SizedBox(height: 16),
+          TextField(controller: passwordCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'Confirm your password')),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: AppColors.danger))),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await ApiClient.instance.deleteAccount(passwordCtrl.text);
+      await ref.read(authProvider.notifier).logout();
+      if (context.mounted) context.go('/login');
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ApiException.describe(e))));
+      }
+    }
   }
 
   Widget _infoRow(String label, String value) => Padding(

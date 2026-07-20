@@ -72,6 +72,8 @@ class ApiClient {
         data: FormData.fromMap({'photo': MultipartFile.fromFileSync(filePath)}),
       );
 
+  Future<Response> deleteAccount(String password) => _dio.post('/delete-account.php', data: {'password': password});
+
   Future<Response> getBalance() => _dio.get('/wallet/balance.php');
 
   Future<Response> fundWallet(double amount) => _dio.post('/wallet/fund.php', data: {'amount': amount});

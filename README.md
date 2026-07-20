@@ -43,12 +43,65 @@ versions pinned in `pubspec.yaml` to confirm they line up.
 - **App store listings** — needs your own Apple Developer ($99/yr) and Google
   Play Developer ($25 one-time) accounts; I have no access to create these.
 
-## Setup
+## Setup (on a machine with Flutter installed)
 
 ```bash
 flutter pub get
 flutter run          # needs a connected device or running emulator
 ```
+
+## Getting an actual APK / iOS build without a Mac
+
+This project's source lives at `mobile_app/` on the same server as the
+website — it is **not** on GitHub yet, and there is no Flutter/Android/Xcode
+toolchain on this Linux hosting box to build from directly (confirmed: no
+`flutter`, no `java`/`gradle`, no `xcodebuild` — and iOS builds require
+Xcode on macOS specifically, which cannot run on Linux under any
+circumstances). A git init + first commit is already done locally in this
+folder, and `codemagic.yaml` is included, pre-configured for both an Android
+APK build and an iOS archive build. To actually produce the files:
+
+1. **Push this to a real git host.** From this `mobile_app/` folder:
+   ```bash
+   git remote add origin <your GitHub/GitLab repo URL>
+   git push -u origin master
+   ```
+   (Create the empty repo on GitHub first — I don't have a GitHub account to
+   create one for you.)
+2. **Sign up at codemagic.io** (free tier covers this) and connect the repo
+   you just pushed. Codemagic will detect `codemagic.yaml` automatically.
+3. **Android APK**: run the `android-apk` workflow — no further setup
+   needed, it'll produce a real, installable `app-release.apk` and email it
+   to you.
+4. **iOS**: run the `ios-archive` workflow — this needs your own Apple
+   Developer account connected in Codemagic (Teams → Code signing
+   identities), and you'll need to update `bundle_identifier` in
+   `codemagic.yaml` to match what you register in App Store Connect. This is
+   the one step only you can do — it's tied to your Apple Developer
+   membership, not something any amount of server access substitutes for.
+
+Alternatively, if you have access to a Windows/Mac/Linux machine, installing
+Flutter locally (`flutter build apk --release` for Android; iOS still needs
+an actual Mac with Xcode for `flutter build ipa`) works exactly the same way
+without needing Codemagic at all.
+
+## Publishing checklist
+
+**Google Play** (needs a one-time $25 Google Play Developer account):
+1. Create the app in [Play Console](https://play.google.com/console).
+2. Generate a real signing keystore (`keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload`) — keep this file and its password somewhere safe forever; losing it means you can never update the app again under the same listing.
+3. Wire the keystore into `android/key.properties` (not committed to git — see `.gitignore`) and `android/app/build.gradle`'s `signingConfigs`, or let Codemagic manage signing for you (Teams → Code signing → Android).
+4. Store listing: app name, description, screenshots (from a real device/emulator, not mockups), a 512×512 icon, a feature graphic, privacy policy URL (you already have one live: `https://kebabadatahub.com.ng/privacy.php`).
+5. Content rating questionnaire, target audience, data safety form (declare what the app collects — matches what's already in the Privacy Policy: name, email, phone, transaction history).
+6. Upload the release `.aab` (Play prefers Android App Bundle over raw APK — `flutter build appbundle --release` instead of `build apk`) and submit for review.
+
+**Apple App Store** (needs a $99/year Apple Developer account):
+1. Register the app's Bundle ID in [developer.apple.com](https://developer.apple.com) (must match `bundle_identifier` in `codemagic.yaml` and `ios/Runner.xcodeproj`).
+2. Create the app listing in [App Store Connect](https://appstoreconnect.apple.com).
+3. Code signing: either let Codemagic handle it automatically (recommended — Teams → Code signing → iOS, connect your Apple Developer account, it generates certificates/profiles for you), or generate a distribution certificate + provisioning profile manually in Xcode.
+4. App Store listing: screenshots for each required device size, app icon (1024×1024), description, keywords, support URL, privacy policy URL (same one as above), and answers to Apple's privacy "nutrition label" questions.
+5. Apple's review is stricter about account deletion — since the app has login/signup, Apple requires an in-app way to delete your account. **Already built and tested**: `Account → Delete account` in the app, backed by `/api/mobile/delete-account.php` (requires password re-entry, blocks deletion if there's an unresolved wallet balance so money can't get silently stranded).
+6. Submit the build produced by the `ios-archive` Codemagic workflow for review via App Store Connect.
 
 ## Project structure
 
@@ -85,6 +138,7 @@ same SMEPlug and KatPay integration the website uses, unchanged.
 | `POST /buy/data.php` | Buy a data plan |
 | `GET /transactions.php?page=` | Paginated transaction history |
 | `POST /device-token.php` | Register a device for push (inactive until Firebase is set up) |
+| `POST /delete-account.php` | Permanently delete the account (password required, blocked if wallet balance > 0) |
 
 Every endpoint requires `Authorization: Bearer <token>` except login/register/
 forgot-password/reset-password. Same rate limits as the website (login,
