@@ -1,0 +1,49 @@
+workflows:
+  android-apk:
+    name: Android APK
+    max_build_duration: 30
+    instance_type: linux
+    environment:
+      flutter: stable
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Analyze (fails the build on real errors, same as flutter analyze locally)
+        script: flutter analyze --no-fatal-infos
+      - name: Build APK
+        script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+    publishing:
+      email:
+        recipients:
+          - kebabadatahubng@gmail.com
+
+  ios-archive:
+    name: iOS Archive (for App Store Connect upload)
+    max_build_duration: 60
+    instance_type: mac_mini_m2 # macOS runner — this is what makes an iOS build possible without owning a Mac
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.kebabadatahub.app # change to match what you register in App Store Connect
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Install CocoaPods
+        script: cd ios && pod install
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+      email:
+        recipients:
+          - kebabadatahubng@gmail.com

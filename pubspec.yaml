@@ -1,0 +1,65 @@
+name: kebabadatahub
+description: KEBABADATAHUB — official mobile app
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Networking
+  dio: ^5.4.0
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Secure token storage
+  flutter_secure_storage: ^9.0.0
+
+  # Biometric login (Face ID / fingerprint)
+  local_auth: ^2.2.0
+
+  # Push notifications (needs a Firebase project — see README)
+  firebase_core: ^2.27.0
+  firebase_messaging: ^14.7.19
+  flutter_local_notifications: ^17.0.0
+
+  # Routing + deep linking
+  go_router: ^13.2.0
+  app_links: ^3.4.5
+
+  # Share receipt
+  share_plus: ^7.2.2
+
+  # Opening the WhatsApp support link
+  url_launcher: ^6.2.5
+
+  # Camera / photo upload (profile photo)
+  image_picker: ^1.0.7
+
+  # Offline caching
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Fonts matching the website exactly (Inter body, Plus Jakarta Sans headings)
+  google_fonts: ^6.2.1
+
+  # Formatting
+  intl: ^0.19.0
+
+  # Device info for the "device_info" field sent at login (session/audit trail)
+  device_info_plus: ^10.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
