@@ -8,8 +8,13 @@ workflows:
       android_signing:
         - kebabadatahub_keystore # name of the keystore reference you create in Codemagic's UI — see README
       vars:
-        PACKAGE_NAME: "com.kebabadatahub.app" # must match applicationId in android/app/build.gradle
+        PACKAGE_NAME: "com.kebabadatahub.kebabadatahub" # must match android/app/build.gradle's applicationId once generated below
     scripts:
+      - name: Generate native platform folders (android/, ios/) if missing
+        script: |
+          if [ ! -d android ]; then
+            flutter create --platforms=android --org com.kebabadatahub --project-name kebabadatahub .
+          fi
       - name: Get packages
         script: flutter pub get
       - name: Analyze (fails the build on real errors, same as flutter analyze locally)
@@ -36,8 +41,13 @@ workflows:
       cocoapods: default
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.kebabadatahub.app # change to match what you register in App Store Connect
+        bundle_identifier: com.kebabadatahub.kebabadatahub # must match what you register in App Store Connect
     scripts:
+      - name: Generate native platform folders (android/, ios/) if missing
+        script: |
+          if [ ! -d ios ]; then
+            flutter create --platforms=ios --org com.kebabadatahub --project-name kebabadatahub .
+          fi
       - name: Get packages
         script: flutter pub get
       - name: Install CocoaPods
