@@ -59,8 +59,10 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
-      app_store_connect:
-        auth: integration
+      # Auto-publish to App Store Connect needs an integration connected first
+      # (Codemagic → Teams → Integrations → App Store Connect, which needs your
+      # Apple Developer account). Until then this just emails you the .ipa —
+      # add the app_store_connect block back once that's connected.
       email:
         recipients:
           - kebabadatahubng@gmail.com
