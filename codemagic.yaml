@@ -14,6 +14,10 @@ workflows:
           if [ ! -d android ]; then
             flutter create --platforms=android --org com.kebabadatahub --project-name kebabadatahub .
           fi
+          # flutter create's template test references a MyApp class that
+          # doesn't exist in this project (root widget is KebabaApp) — remove
+          # it so `flutter analyze` doesn't fail on generated boilerplate.
+          rm -f test/widget_test.dart
       - name: Get packages
         script: flutter pub get
       - name: Analyze (fails the build on real errors, same as flutter analyze locally)
@@ -47,6 +51,7 @@ workflows:
           if [ ! -d ios ]; then
             flutter create --platforms=ios --org com.kebabadatahub --project-name kebabadatahub .
           fi
+          rm -f test/widget_test.dart
       - name: Get packages
         script: flutter pub get
       - name: Install CocoaPods
