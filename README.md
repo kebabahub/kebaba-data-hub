@@ -53,37 +53,57 @@ flutter run          # needs a connected device or running emulator
 ## Getting an actual APK / iOS build without a Mac
 
 This project's source lives at `mobile_app/` on the same server as the
-website — it is **not** on GitHub yet, and there is no Flutter/Android/Xcode
-toolchain on this Linux hosting box to build from directly (confirmed: no
-`flutter`, no `java`/`gradle`, no `xcodebuild` — and iOS builds require
-Xcode on macOS specifically, which cannot run on Linux under any
-circumstances). A git init + first commit is already done locally in this
-folder, and `codemagic.yaml` is included, pre-configured for both an Android
-APK build and an iOS archive build. To actually produce the files:
+website — it is **not** on GitHub yet, and there is no
+Flutter/Java/Android/Xcode toolchain on this Linux hosting box to build from
+directly (confirmed: no `flutter`, no `java`/`gradle`/`keytool`, no
+`xcodebuild` — iOS builds require Xcode on macOS specifically, which cannot
+run on Linux under any circumstances). A git repo with 2 commits already
+exists locally, a dedicated SSH deploy key has been generated for pushing it
+(public key below), and `codemagic.yaml` is included, pre-configured for a
+signed Android APK + App Bundle build and an iOS archive build. To actually
+produce the files:
 
-1. **Push this to a real git host.** From this `mobile_app/` folder:
-   ```bash
-   git remote add origin <your GitHub/GitLab repo URL>
-   git push -u origin master
+A git repo already exists in this folder (2 commits) with a dedicated deploy
+key generated and ready — nothing more to install. **What's needed from you
+is two things only you can provide: a GitHub repo to push to, and your own
+Codemagic/Play/Apple accounts connected in their respective dashboards.**
+
+1. **Create an empty repository on GitHub** (I have no GitHub account and
+   can't create one for you) — e.g. `kebabadatahub-mobile`. Don't initialize
+   it with a README/license, so the push below doesn't conflict.
+2. **Add this deploy key to that repo**: GitHub repo → Settings → Deploy keys
+   → Add deploy key → check "Allow write access" → paste:
    ```
-   (Create the empty repo on GitHub first — I don't have a GitHub account to
-   create one for you.)
-2. **Sign up at codemagic.io** (free tier covers this) and connect the repo
-   you just pushed. Codemagic will detect `codemagic.yaml` automatically.
-3. **Android APK**: run the `android-apk` workflow — no further setup
-   needed, it'll produce a real, installable `app-release.apk` and email it
-   to you.
-4. **iOS**: run the `ios-archive` workflow — this needs your own Apple
-   Developer account connected in Codemagic (Teams → Code signing
-   identities), and you'll need to update `bundle_identifier` in
-   `codemagic.yaml` to match what you register in App Store Connect. This is
-   the one step only you can do — it's tied to your Apple Developer
-   membership, not something any amount of server access substitutes for.
+   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHObjJ9R1RXwGKnr6elQYtjJ4bWCxAFrOVSTOFEUa3ar kebabadatahub-mobile-deploy
+   ```
+   (This key lives only on this server, scoped to push to this one repo — not
+   your personal GitHub account.)
+3. **Tell me the repo's SSH URL** (`git@github.com:yourname/kebabadatahub-mobile.git`)
+   and I'll push immediately — the remote is already configured to use this
+   key for anything under `github.com`.
+4. **Sign up at codemagic.io** (free tier) and connect the repo. It'll detect
+   `codemagic.yaml` automatically, with two workflows: `android-release`
+   (signed APK + AAB) and `ios-archive`.
+5. **Android signing** — I cannot generate a real keystore on this server (no
+   JDK/`keytool` installed here, and installing a full JDK just to run
+   `keytool` isn't worth it for one file). Easiest path: in Codemagic → your
+   app → Code signing identities → Android, use Codemagic's **"Generate
+   keystore"** button — it creates a real, valid keystore for you directly in
+   their UI, no local tooling needed. Name the reference `kebabadatahub_keystore`
+   to match `codemagic.yaml`, or update that line to match whatever you name it.
+   **Save the generated keystore + passwords somewhere safe outside
+   Codemagic too** — if you ever lose it, you can never update the app under
+   the same Play Store listing again.
+6. **Run the `android-release` workflow** — produces a real signed
+   `app-release.apk` and `app-release.aab`, emailed to you automatically.
+7. **iOS**: run `ios-archive` — needs your Apple Developer account connected
+   in Codemagic (Teams → Code signing identities → iOS), and
+   `bundle_identifier` in `codemagic.yaml` updated to match what you register
+   in App Store Connect.
 
-Alternatively, if you have access to a Windows/Mac/Linux machine, installing
-Flutter locally (`flutter build apk --release` for Android; iOS still needs
-an actual Mac with Xcode for `flutter build ipa`) works exactly the same way
-without needing Codemagic at all.
+Alternatively, if you get access to a machine with Flutter installed, `flutter
+build apk --release` / `flutter build appbundle --release` work the same way
+locally without Codemagic — iOS still needs an actual Mac with Xcode either way.
 
 ## Publishing checklist
 

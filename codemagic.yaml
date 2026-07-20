@@ -1,19 +1,26 @@
 workflows:
-  android-apk:
-    name: Android APK
+  android-release:
+    name: Android APK + App Bundle (signed)
     max_build_duration: 30
     instance_type: linux
     environment:
       flutter: stable
+      android_signing:
+        - kebabadatahub_keystore # name of the keystore reference you create in Codemagic's UI — see README
+      vars:
+        PACKAGE_NAME: "com.kebabadatahub.app" # must match applicationId in android/app/build.gradle
     scripts:
       - name: Get packages
         script: flutter pub get
       - name: Analyze (fails the build on real errors, same as flutter analyze locally)
         script: flutter analyze --no-fatal-infos
-      - name: Build APK
+      - name: Build signed APK
         script: flutter build apk --release
+      - name: Build signed App Bundle (what Google Play actually wants)
+        script: flutter build appbundle --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/bundle/release/app-release.aab
     publishing:
       email:
         recipients:
