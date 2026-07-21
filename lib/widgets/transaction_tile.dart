@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/theme.dart';
 import '../models/transaction.dart';
+import 'receipt_card.dart';
 import 'status_badge.dart';
 
 final _naira = NumberFormat.currency(locale: 'en_NG', symbol: '₦', decimalDigits: 2);
@@ -27,22 +28,49 @@ class TransactionTile extends StatelessWidget {
   const TransactionTile({super.key, required this.tx});
   final AppTransaction tx;
 
-  Future<void> _shareReceipt() async {
-    final sign = tx.credit ? '+' : '-';
-    final text = 'KEBABADATAHUB Receipt\n\n'
-        '${tx.title}\n'
-        '${tx.meta}\n'
-        'Amount: $sign${_naira.format(tx.amount)}\n'
-        'Status: ${tx.status}\n'
-        'Reference: ${tx.reference}\n'
-        'Date: ${DateFormat('d MMM yyyy, HH:mm').format(tx.createdAt)}';
-    await Share.share(text, subject: 'KEBABADATAHUB Receipt — ${tx.reference}');
+  void _showReceipt(BuildContext context) {
+    final receipt = ReceiptCard(
+      status: tx.status,
+      serviceLabel: tx.title,
+      amount: tx.amount.toStringAsFixed(2),
+      extraRows: [MapEntry('Details', tx.meta)],
+      reference: tx.reference,
+      dateText: DateFormat('MMM d, yyyy, h:mm a').format(tx.createdAt),
+    );
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              receipt,
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => Share.share(receipt.toShareText()),
+                icon: const Icon(Icons.share),
+                label: const Text('Share Receipt'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onLongPress: _shareReceipt,
+      onLongPress: () => Share.share(ReceiptCard(
+        status: tx.status,
+        serviceLabel: tx.title,
+        amount: tx.amount.toStringAsFixed(2),
+        extraRows: [MapEntry('Details', tx.meta)],
+        reference: tx.reference,
+        dateText: DateFormat('MMM d, yyyy, h:mm a').format(tx.createdAt),
+      ).toShareText()),
       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       leading: Container(
         width: 44,
@@ -67,7 +95,7 @@ class TransactionTile extends StatelessWidget {
           StatusBadge(status: tx.status),
         ],
       ),
-      onTap: _shareReceipt,
+      onTap: () => _showReceipt(context),
     );
   }
 }

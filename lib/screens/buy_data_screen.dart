@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import '../core/api_client.dart';
 import '../core/auth_provider.dart';
 import '../core/theme.dart';
 import '../models/data_plan.dart';
+import '../widgets/receipt_card.dart';
 
 const _networks = ['MTN', 'Airtel', 'Glo', '9mobile'];
 
@@ -23,6 +26,7 @@ class _BuyDataScreenState extends ConsumerState<BuyDataScreen> {
   bool _submitting = false;
   String? _error;
   String? _successRef;
+  DateTime? _successAt;
 
   @override
   void initState() {
@@ -67,7 +71,10 @@ class _BuyDataScreenState extends ConsumerState<BuyDataScreen> {
       );
       if (res.data['success'] == true) {
         await ref.read(authProvider.notifier).refreshBalance();
-        setState(() => _successRef = res.data['reference']);
+        setState(() {
+          _successRef = res.data['reference'];
+          _successAt = DateTime.now();
+        });
       } else {
         setState(() => _error = res.data['error'] ?? 'Purchase failed');
       }
@@ -200,28 +207,37 @@ class _BuyDataScreenState extends ConsumerState<BuyDataScreen> {
   }
 
   Widget _buildSuccess(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle, color: AppColors.success, size: 64),
-            const SizedBox(height: 16),
-            Text('Data purchase successful!', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text('Reference: $_successRef', style: const TextStyle(color: AppColors.inkLight500)),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => setState(() {
-                _successRef = null;
-                _phoneCtrl.clear();
-                _selectedPlan = null;
-              }),
-              child: const Text('Buy Again'),
-            ),
-          ],
-        ),
+    final plan = _selectedPlan;
+    final receipt = ReceiptCard(
+      serviceLabel: plan?.name ?? 'Data Purchase',
+      amount: plan?.price.toStringAsFixed(0),
+      network: _network,
+      phone: _phoneCtrl.text.trim(),
+      reference: _successRef!,
+      dateText: DateFormat('MMM d, yyyy, h:mm a').format(_successAt ?? DateTime.now()),
+    );
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          receipt,
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => Share.share(receipt.toShareText()),
+            icon: const Icon(Icons.share),
+            label: const Text('Share Receipt'),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () => setState(() {
+              _successRef = null;
+              _successAt = null;
+              _phoneCtrl.clear();
+              _selectedPlan = null;
+            }),
+            child: const Text('Buy Again'),
+          ),
+        ],
       ),
     );
   }
