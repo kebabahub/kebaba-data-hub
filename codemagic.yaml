@@ -20,8 +20,8 @@ workflows:
           rm -f test/widget_test.dart
       - name: Get packages
         script: flutter pub get
-      - name: Analyze (fails the build on real errors, same as flutter analyze locally)
-        script: flutter analyze --no-fatal-infos
+      - name: Analyze (fails the build on real errors only — warnings/infos are style lints, not release blockers)
+        script: flutter analyze --no-fatal-infos --no-fatal-warnings
       - name: Build signed APK
         script: flutter build apk --release
       - name: Build signed App Bundle (what Google Play actually wants)

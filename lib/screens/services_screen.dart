@@ -3,12 +3,11 @@ import '../core/theme.dart';
 import '../widgets/app_bottom_nav.dart';
 
 class _ServiceItem {
-  const _ServiceItem(this.icon, this.color, this.title, this.subtitle, {this.comingSoon = true});
+  const _ServiceItem(this.icon, this.color, this.title, this.subtitle);
   final IconData icon;
   final Color color;
   final String title;
   final String subtitle;
-  final bool comingSoon;
 }
 
 // Mirrors services.php's list exactly — Cable TV / Electricity are genuinely
