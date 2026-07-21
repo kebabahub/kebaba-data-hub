@@ -33,7 +33,7 @@ dependencies:
   app_links: ^6.0.0
 
   # Share receipt
-  share_plus: ^7.2.2
+  share_plus: ^10.0.0
 
   # Opening the WhatsApp support link
   url_launcher: ^6.2.5

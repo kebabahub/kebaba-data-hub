@@ -36,7 +36,7 @@ class TransactionTile extends StatelessWidget {
         'Status: ${tx.status}\n'
         'Reference: ${tx.reference}\n'
         'Date: ${DateFormat('d MMM yyyy, HH:mm').format(tx.createdAt)}';
-    await Share.share(text, subject: 'KEBABADATAHUB Receipt — ${tx.reference}');
+    await SharePlus.instance.share(ShareParams(text: text, subject: 'KEBABADATAHUB Receipt — ${tx.reference}'));
   }
 
   @override
