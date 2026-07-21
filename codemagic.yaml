@@ -50,6 +50,9 @@ workflows:
               echo "}"
             } >> "$GRADLE_FILE"
           fi
+          echo "----- $GRADLE_FILE (final content) -----"
+          cat "$GRADLE_FILE"
+          echo "----- end of $GRADLE_FILE -----"
       - name: Get packages
         script: flutter pub get
       - name: Analyze (fails the build on real errors only — warnings/infos are style lints, not release blockers)
