@@ -35,7 +35,7 @@ class TransactionTile extends StatelessWidget {
       amount: tx.amount.toStringAsFixed(2),
       extraRows: [MapEntry('Details', tx.meta)],
       reference: tx.reference,
-      dateText: DateFormat('MMM d, yyyy, h:mm a').format(tx.createdAt),
+      dateText: DateFormat('MMM d, yyyy, h:mm a').format(tx.createdAt.toLocal()),
     );
     showModalBottomSheet(
       context: context,
@@ -69,7 +69,7 @@ class TransactionTile extends StatelessWidget {
         amount: tx.amount.toStringAsFixed(2),
         extraRows: [MapEntry('Details', tx.meta)],
         reference: tx.reference,
-        dateText: DateFormat('MMM d, yyyy, h:mm a').format(tx.createdAt),
+        dateText: DateFormat('MMM d, yyyy, h:mm a').format(tx.createdAt.toLocal()),
       ).toShareText()),
       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       leading: Container(
