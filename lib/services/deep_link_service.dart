@@ -19,7 +19,7 @@ class DeepLinkService {
 
   void init(GoRouter router) {
     _appLinks.uriLinkStream.listen((uri) => _handle(uri, router));
-    _appLinks.getInitialAppLink().then((uri) {
+    _appLinks.getInitialLink().then((uri) {
       if (uri != null) _handle(uri, router);
     });
   }
