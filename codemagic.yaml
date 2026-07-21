@@ -57,12 +57,12 @@ workflows:
         script: flutter pub get
       - name: Analyze (fails the build on real errors only — warnings/infos are style lints, not release blockers)
         script: flutter analyze --no-fatal-infos --no-fatal-warnings
-      - name: Build signed APK
-        script: flutter build apk --release
+      - name: Build signed APK (split per ABI — 3 smaller files instead of one universal one)
+        script: flutter build apk --release --split-per-abi
       - name: Build signed App Bundle (what Google Play actually wants)
         script: flutter build appbundle --release
     artifacts:
-      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/flutter-apk/*.apk
       - build/app/outputs/bundle/release/app-release.aab
     publishing:
       email:
